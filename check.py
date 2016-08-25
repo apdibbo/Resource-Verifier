@@ -29,16 +29,6 @@ def parse(s):
 		i+=1
 	return st
 
-ignore = [
-	"kernel-firmware",	# -> linux-firmware
-	"util-linux-ng",	# -> util-linux
-	"iptables-ipv6",	# -> iptables-services
-	"cryptsetup-luks",	# -> cryptsetup
-	"procps",		# -> procps-ng
-	"yum-autoupdate",	# -> yum-cron		???
-	"man",			# -> man-db
-	"eject" 		# -> util-linux		???
-]
 
 hostname = cl("hostname")[0][:-1]
 url = "http://aquilon.gridpp.rl.ac.uk/profiles/{0}.json".format(hostname)
