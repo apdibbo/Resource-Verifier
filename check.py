@@ -87,13 +87,12 @@ for p in tpkg & fpkgs:
 	vers = tpkgin[p]
 	if len(vers) > 0: # specified verison provided
 		tvers = parse(vers.keys()[0]).split("-")
-		print tvers
 		tver = tvers[0] + "-" + tvers[1].split('.')[0]
+		
 		rvers = fpkginfo[p].split("-")
-		print rvers
 		rver = rvers[0] + "-" + rvers[1].split('.')[0]
 		i = 0
-		print p, rver, "-->", tver
+		
 		acceptable = True
 		for n in tver.replace('-','.').split('.'):
 			if not (n.isdigit() and rver.replace('-','.').split('.')[i].isdigit()):
@@ -107,7 +106,6 @@ for p in tpkg & fpkgs:
 		
 		if not acceptable:
 			update[p] = {}
-			print tver, rver
 			update[p]["required_version"] = tver
 			update[p]["current_version"] = rver
 
