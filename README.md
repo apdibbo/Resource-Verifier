@@ -5,4 +5,5 @@ Usage
 -----
 
 `# ./check.py [-h] [--json]`
+
 (must be run as root)
