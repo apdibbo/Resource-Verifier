@@ -50,21 +50,26 @@ c = json.loads(rjson)
 
 fullpkgsrw = cl('rpm -qa --queryformat "%{NAME};%{VERSION};%{RELEASE}\n" | sort -t\; -k 1')[0]
 fpkgs = set([])
+fpkginfo = {}
 for fpkgrw in fullpkgsrw.split("\n")[:-1]:
 	fpkgn = fpkgrw.split(";")[0]
 	fpkgs.add(fpkgn)
+	fpkgv = fpkgrw.split(";")[1] + "-" + fpkgrw.split(";")[2]
+	fpkginfo[fpkgn] = fpkgv
 
 targetPkg = c.keys()
 tpkg = set()
+tpkgin = {}
 for pd in targetPkg:
 	p = parse(pd)
 	tpkg.add(p)
+	tpkgin[p] = c[pd]
 altpkg = set()
 
 missing = set()
 excess = set()
-updates = {}
-
+rename = {}
+update = {}
 
 for p in tpkg - fpkgs:
 	# try whatprovides for containing packages
@@ -75,8 +80,36 @@ for p in tpkg - fpkgs:
 	if len(gdptn) == 0:
 		missing.add(p)
 	else:
-		updates[p] = list(gdptn)
+		rename[p] = list(gdptn)
 		altpkg = gdptn | altpkg
+
+for p in tpkg & fpkgs:
+	vers = tpkgin[p]
+	if len(vers) > 0: # specified verison provided
+		tvers = parse(vers.keys()[0]).split("-")
+		print tvers
+		tver = tvers[0] + "-" + tvers[1].split('.')[0]
+		rvers = fpkginfo[p].split("-")
+		print rvers
+		rver = rvers[0] + "-" + rvers[1].split('.')[0]
+		i = 0
+		print p, rver, "-->", tver
+		acceptable = True
+		for n in tver.replace('-','.').split('.'):
+			if not (n.isdigit() and rver.replace('-','.').split('.')[i].isdigit()):
+				continue
+			if int(n) < int(rver.replace('-','.').split('.')[i]):
+				acceptable = True
+				break
+			if int(n) > int(rver.replace('-','.').split('.')[i]):
+				acceptable = False
+			i += 1
+		
+		if not acceptable:
+			update[p] = {}
+			print tver, rver
+			update[p]["required_version"] = tver
+			update[p]["current_version"] = rver
 
 for p in fpkgs - tpkg - altpkg:
 	req = cl("rpm --test -e "+p)[1]
@@ -87,17 +120,22 @@ if(outputtype == 0):
 	for m in missing:
 		print '\033[91m' + m
 	
-	for u in updates:
-		print '\033[93m' + u + " --> " + ", ".join(updates[u])
+	for r in rename:
+		print '\033[93m' + r + " --> " + ", ".join(rename[r])
 
 	for e in excess:
 		print '\033[92m'+e
 
+	for u in update:
+		print '\033[95m'+ u + ": " + update[u]["current_version"] + " --> " + update[u]["required_version"]
+	print "\033[0m"
+
 if(outputtype == 1):
 	jobj = {}
 	jobj["missing"] = list(missing)
-	jobj["updates"] = updates
+	jobj["rename"] = rename
 	jobj["excess"] = list(excess)
+	jobj["update"] = update
 	print json.dumps(jobj, indent=4)
 
-print "\033[0m"
+
