@@ -19,7 +19,8 @@ attrs = {
 	"eth0": "",
 	"eth0.hwaddr": "",
 	"cpu": {},
-	"ram": ""
+	"ram": "",
+	"harddisks": {}
 }
 
 #ethernet
@@ -41,7 +42,22 @@ for n in core.findall("node"):
 	if nid == "memory":
 		attrs["ram"] = str(int(n.find("node").find("size").text)/1048576)
 
-# sorry abou this next bit, its awful I know
+rwlsblk = cl("lsblk --raw")[0]
+sl = rwlsblk.split("\n")[:-1]
+sl.reverse()
+for d in sl:
+	if len(d.split()) < 6:
+		continue
+	if d.split()[5] == "disk":
+		s = d.split()[3]
+		n = int(s[:-1])
+		u = s[-1]
+		sizes = ["K", "M", "G", "T", "P"]
+		sf = sizes.index(u.upper())-1
+		mbn = n*(1024**sf)
+	
+		attrs["harddisks"][d.split()[0]] = str(mbn)
+# sorry abou this next bit, it's awful I know
 result = {}
 
 result["eth"] = {}
@@ -59,12 +75,15 @@ if attrs["ram"] != t: result["ram"]["target"] = t
 result["ram"]["detected"] = attrs["ram"]
 
 result["cpu"] = {}
+
+result["cpu"]["correct"] = {}
+result["cpu"]["missing"] = {}
+result["cpu"]["excess"] = {}
 for cpu in attrs["cpu"]:
 	ccpu = {}
 	if cpu >= len(thw["cpu"]):
 		t = attrs["cpu"][cpu]
-		t["correction"] = "excess"
-		result["cpu"][cpu] = t
+		result["cpu"]["excess"][cpu] = t
 		continue
 	for a in attrs["cpu"][cpu]:	
 		t = attrs["cpu"][cpu][a]
@@ -75,14 +94,36 @@ for cpu in attrs["cpu"]:
 		if t==v: cobj["target"] = t
 		cobj["detected"] = v
 		ccpu[a] = cobj
-	result["cpu"][cpu] = ccpu
+	result["cpu"]["correct"][cpu] = ccpu
 for i in range(0,len(thw["cpu"])):
 	if i not in attrs["cpu"]:
 		t = thw["cpu"][i]
-		t["correction"] = "excess"
-		result["cpu"][cpu] = t
+		result["cpu"]["missing"][cpu] = t
 
 
+rhd = attrs["harddisks"]
 
+rhds = set(rhd.keys())
+thds = set(thw["harddisks"].keys())
+
+result["hds"] = {}
+
+result["hds"]["excess"] = {}
+for i in rhds-thds: # excess
+	result["hds"]["excess"][i] = rhd[i]
+
+result["hds"]["missing"] = {}
+for i in thds-rhds:
+	result["hds"]["missing"][i] = thw["harddisks"][i]["capacity"]
+
+
+result["hds"]["correct"] = {}
+for i in thds&rhds:
+	obj = {}
+	obj["correct"] = (rhd[i] == thw["harddisks"][i]["capacity"])
+	obj["detected"] = rhd[i]
+	if rhd[i] != thw["harddisks"][i]["capacity"]: obj["target"] = thw["harddisks"][i]["capacity"]
+	result["hds"]["correct"][i] = obj
 
 print json.dumps(result, indent=4)
+
