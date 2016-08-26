@@ -5,6 +5,7 @@ Usage
 -----
 
 `# ./checksw.py [-h] [--json]`
+
 `# ./checkhw.py`
 
 (must be run as root)
