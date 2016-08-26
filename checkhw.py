@@ -101,7 +101,7 @@ for cpu in attrs["cpu"]:
 			
 		cobj = {}
 		cobj["correct"] = (t==v)
-		if t==v: cobj["target"] = t
+		if t!=v: cobj["target"] = t
 		cobj["detected"] = v
 		ccpu[a] = cobj
 	result["cpu"]["correct"][cpu] = ccpu
@@ -142,22 +142,22 @@ if outputformat == 0:
 		res = result[r]
 		print r + ":"
 		if r == "eth":
-			print "  - Hardware address: " + res["hwaddr"]["detected"] + ((" --> " + res["hwaddr"]["target"]) if not res["hwaddr"]["correct"] else "")
+			print "  - Hardware address: {0}".format(res["hwaddr"]["detected"]) + ((" --> {0}".format(res["hwaddr"]["target"])) if not res["hwaddr"]["correct"] else "")
 		if r == "ram":
-			print "  - Size: " + res["detected"] + "M" + ((" --> " + str(res["target"]) + "M") if not res["correct"] else "")
+			print "  - Size: {0}M".format(res["detected"]) + ((" --> {0}M".format(res["target"])) if not res["correct"] else "")
 		if r == "hds":
 			if len(res["correct"]) > 0:
 				print "    Correct:"
 			for i in res["correct"]:
-				print "      - " + i + ": "+ res["correct"][i]["detected"] + "M" + ((" --> " + res["correct"][i]["target"] + "M") if not res["correct"][i]["correct"] else "")
+				print "      - {0}: {1}M".format(i, res["correct"][i]["detected"]) + ((" --> {0}M".format(res["correct"][i]["target"])) if not res["correct"][i]["correct"] else "")
 			if len(res["missing"]) > 0:
 				print "    Missing:"
 			for i in res["missing"]:
-				print "      - " + i + ": "+ res["missing"][i] + "M"
+				print "      - {0}: {1}M".format(i, res["missing"][i])
 			if len(res["excess"]) > 0:
 				print "    Excess:"
 			for i in res["excess"]:
-				print "      - " + i + ": "+ res["excess"][i] + "M"
+				print "      - {0}: {1}M".format(i, res["excess"][i])
 
 		if r == "cpu":
 			mu = {
@@ -172,7 +172,7 @@ if outputformat == 0:
 				print "      + " + str(i) + ": "
 				ress = res["correct"][i]
 				for j in ress:
-					print "          - " + mu[j][1] + ": " + ress[j]["detected"] + mu[j][0] + ((" --> " + ress[j]["target"] + mu[j][0]) if not ress[j]["correct"] else "")
+					print "          - {0}: {1} {2}".format(mu[j][1], ress[j]["detected"], mu[j][0]) + ((" --> {0}{1}".format(ress[j]["target"], mu[j][0])) if not ress[j]["correct"] else "")
 
 			if len(res["missing"]) > 0:
 				print "    Missing:"
@@ -180,7 +180,7 @@ if outputformat == 0:
 				print "      + " + str(i) + ": "
 				ress = res["missing"][i]
 				for j in ress:
-					print "          - " + mu[j][1] + ": " + ress[j]["detected"] + mu[j][0]
+					print "          - {0}: {1} {2}".format(mu[j][1], ress[j], mu[j][0])
 
 
 			if len(res["excess"]) > 0:
@@ -189,7 +189,7 @@ if outputformat == 0:
 				print "      + " + str(i) + ": "
 				ress = res["excess"][i]
 				for j in ress:
-					print "          - " + mu[j][1] + ": " + ress[j] + mu[j][0]
+					print "          - {0}: {1} {2}".format(mu[j][1], ress[j], mu[j][0])
 
 
 		
