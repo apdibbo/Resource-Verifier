@@ -60,7 +60,7 @@ for d in sl:
 		continue
 	if d.split()[5] == "disk":
 		s = d.split()[3]
-		n = int(s[:-1])
+		n = float(s[:-1])
 		u = s[-1]
 		sizes = ["K", "M", "G", "T", "P"]
 		sf = sizes.index(u.upper())-1
