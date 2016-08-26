@@ -7,9 +7,9 @@ import sys
 outputformat = 0 # 0=pretty, 1=json
 if len(sys.argv) > 1:
 	if sys.argv[1] == "-h":
-		print "Usage: {0} [-h] [-json]".format(sys.argv[0])
+		print "Usage: {0} [-h] [--json]".format(sys.argv[0])
 		sys.exit(0)
-	if sys.argv[1] == "-json":
+	if sys.argv[1] == "--json":
 		outputformat = 1
 
 
