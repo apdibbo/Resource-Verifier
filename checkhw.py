@@ -96,8 +96,8 @@ for cpu in attrs["cpu"]:
 		result["cpu"]["excess"][cpu] = t
 		continue
 	for a in attrs["cpu"][cpu]:	
-		t = attrs["cpu"][cpu][a]
-		v = thw["cpu"][cpu][a]
+		t = str(attrs["cpu"][cpu][a])
+		v = str(thw["cpu"][cpu][a])
 			
 		cobj = {}
 		cobj["correct"] = (t==v)
@@ -172,15 +172,14 @@ if outputformat == 0:
 				print "      + " + str(i) + ": "
 				ress = res["correct"][i]
 				for j in ress:
-					print "          - {0}: {1} {2}".format(mu[j][1], ress[j]["detected"], mu[j][0]) + ((" --> {0}{1}".format(ress[j]["target"], mu[j][0])) if not ress[j]["correct"] else "")
-
+					print "          - {0}: {1}{2}".format(mu[j][1], ress[j]["detected"], mu[j][0]) + ((" --> {0}{1}".format(ress[j]["target"], mu[j][0])) if not ress[j]["correct"] else "")
 			if len(res["missing"]) > 0:
 				print "    Missing:"
 			for i in res["missing"]:
 				print "      + " + str(i) + ": "
 				ress = res["missing"][i]
 				for j in ress:
-					print "          - {0}: {1} {2}".format(mu[j][1], ress[j], mu[j][0])
+					print "          - {0}: {1}{2}".format(mu[j][1], ress[j], mu[j][0])
 
 
 			if len(res["excess"]) > 0:
@@ -189,7 +188,7 @@ if outputformat == 0:
 				print "      + " + str(i) + ": "
 				ress = res["excess"][i]
 				for j in ress:
-					print "          - {0}: {1} {2}".format(mu[j][1], ress[j], mu[j][0])
+					print "          - {0}: {1}{2}".format(mu[j][1], ress[j], mu[j][0])
 
 
 		
