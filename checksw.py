@@ -3,6 +3,7 @@ from subprocess import Popen, PIPE
 import urllib2, json
 import argparse
 import sys
+import re
 
 outputtype = 0
 for a in sys.argv:
@@ -20,7 +21,8 @@ def parse(s):
 	i=0
 	while i<len(s):
 		ch = s[i]
-		if ch=="_":
+		r = re.compile(r"_([a-f]|[0-9]){2}")
+		if r.search(s[i:i+3]) is not None:
 			sq = s[i+1:i+3]
 			st = st + chr(int(sq, 16))
 			i = i + 2
