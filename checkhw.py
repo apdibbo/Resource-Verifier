@@ -2,6 +2,16 @@
 from subprocess import PIPE, Popen
 import json
 import xml.etree.ElementTree as ET
+import sys
+
+outputformat = 0 # 0=pretty, 1=json
+if len(sys.argv) > 1:
+	if sys.argv[1] == "-h":
+		print "Usage: {0} [-h] [-json]".format(sys.argv[0])
+		sys.exit(0)
+	if sys.argv[1] == "-json":
+		outputformat = 1
+
 
 def cl(c):
 	p = Popen(c, shell=True, stdout=PIPE, stderr = PIPE)
@@ -31,7 +41,7 @@ for n in core.findall("node"):
 		for pn in n.findall("node"):
 			if pn.get("id") == "network":
 				attrs["eth0"] = pn.find("logicalname").text
-				attrs["eth0.hwaddr"] = pn.find("businfo").text
+				attrs["eth0.hwaddr"] = pn.find("serial").text
 	if nid[0:3] == "cpu":
 		attrs["cpu"][int(nid[4:])] = {
 			"manufacturer": n.find("vendor").text,
@@ -102,6 +112,7 @@ for i in range(0,len(thw["cpu"])):
 
 
 rhd = attrs["harddisks"]
+rhd["sda"] = rhd["vda"]
 
 rhds = set(rhd.keys())
 thds = set(thw["harddisks"].keys())
@@ -124,6 +135,61 @@ for i in thds&rhds:
 	obj["detected"] = rhd[i]
 	if rhd[i] != thw["harddisks"][i]["capacity"]: obj["target"] = thw["harddisks"][i]["capacity"]
 	result["hds"]["correct"][i] = obj
+if outputformat == 1:
+	print json.dumps(result, indent=4)
+if outputformat == 0:
+	for r in result:
+		res = result[r]
+		print r + ":"
+		if r == "eth":
+			print "  - Hardware address: " + res["hwaddr"]["detected"] + ((" --> " + res["hwaddr"]["target"]) if not res["hwaddr"]["correct"] else "")
+		if r == "ram":
+			print "  - Size: " + res["detected"] + "M" + ((" --> " + str(res["target"]) + "M") if not res["correct"] else "")
+		if r == "hds":
+			if len(res["correct"]) > 0:
+				print "    Correct:"
+			for i in res["correct"]:
+				print "      - " + i + ": "+ res["correct"][i]["detected"] + "M" + ((" --> " + res["correct"][i]["target"] + "M") if not res["correct"][i]["correct"] else "")
+			if len(res["missing"]) > 0:
+				print "    Missing:"
+			for i in res["missing"]:
+				print "      - " + i + ": "+ res["missing"][i] + "M"
+			if len(res["excess"]) > 0:
+				print "    Excess:"
+			for i in res["excess"]:
+				print "      - " + i + ": "+ res["excess"][i] + "M"
 
-print json.dumps(result, indent=4)
+		if r == "cpu":
+			mu = {
+				"speed":["MHz", "Speed"],
+				"model":["", "Model"],
+				"vendor":["", "Vendor"],
+				"manufacturer":["", "Manufacturer"]
+			}
+			if len(res["correct"]) > 0:
+				print "    Correct:"
+			for i in res["correct"]:
+				print "      + " + str(i) + ": "
+				ress = res["correct"][i]
+				for j in ress:
+					print "          - " + mu[j][1] + ": " + ress[j]["detected"] + mu[j][0] + ((" --> " + ress[j]["target"] + mu[j][0]) if not ress[j]["correct"] else "")
 
+			if len(res["missing"]) > 0:
+				print "    Missing:"
+			for i in res["missing"]:
+				print "      + " + str(i) + ": "
+				ress = res["missing"][i]
+				for j in ress:
+					print "          - " + mu[j][1] + ": " + ress[j]["detected"] + mu[j][0]
+
+
+			if len(res["excess"]) > 0:
+				print "    Missing:"
+			for i in res["excess"]:
+				print "      + " + str(i) + ": "
+				ress = res["excess"][i]
+				for j in ress:
+					print "          - " + mu[j][1] + ": " + ress[j] + mu[j][0]
+
+
+		
